@@ -1,0 +1,20 @@
+<!DOCTYPE html><html lang="ja">
+
+<head>    <meta charset="UTF-8">    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>CCNA Simulator - Start</title>    <link rel="stylesheet" href="css/style.css">    <!-- データ定義を読み込んでリストを生成するために参照 -->    <script src="js/scenario_data.js"></script></head>
+
+<body>    <div class="start-container">        <div class="title-group">            <h1 class="main-title">CCNA Simulator</h1>            <p class="subtitle">powered by Actias</p>        </div>
+
+        <div class="scenario-grid" id="scenario-list">            <!-- JSで動的に生成 -->        </div>    </div>
+
+    <script>        document.addEventListener('DOMContentLoaded', () => {            const listEl = document.getElementById('scenario-list');
+
+            if (typeof scenarios !== 'undefined') {                scenarios.filter(scene => scene.id !== 'free').forEach(scene => {                    const card = document.createElement('a');                    card.className = 'scenario-card';                    card.href = `simulator.html?scenario=${scene.id}`;
+
+                    if (scene.image) {                        const img = document.createElement('img');                        img.src = scene.image;                        img.alt = scene.title;                        img.className = 'scenario-thumbnail';                        card.appendChild(img);                    }
+
+                    const title = document.createElement('h3');                    title.textContent = scene.title;
+
+                    card.appendChild(title);                    listEl.appendChild(card);                });            }        });    </script></body>
+
+
+</html>

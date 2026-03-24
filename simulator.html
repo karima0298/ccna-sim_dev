@@ -1,0 +1,81 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCNA Simulator</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="app-mode">
+    <div class="app-container">
+        <!-- 左側パネル: 情報エリア -->
+        <div class="info-pane">
+            <!-- 情報タブ -->
+            <div class="info-tabs">
+                <button class="tab-btn active" data-tab="guidelines">Guidelines</button>
+                <button class="tab-btn" data-tab="topology">Topology</button>
+                <button class="tab-btn" data-tab="tasks">Tasks</button>
+                <button class="tab-btn" data-tab="validation">Results</button>
+            </div>
+
+            <!-- 情報コンテンツ -->
+            <div class="info-content">
+                <div id="guidelines" class="tab-content active">
+                    <h2 class="content-title">Guidelines</h2>
+                    <div id="scenario-desc" class="scrollable-content">
+                        <!-- JSで記述が入る -->
+                    </div>
+                </div>
+                <div id="topology" class="tab-content">
+                    <h2 class="content-title">Topology</h2>
+                    <div class="topology-container">
+                        <img id="scenario-image" src="" alt="Topology" style="display:none;">
+                    </div>
+                </div>
+                <div id="tasks" class="tab-content">
+                    <h2 class="content-title">Tasks</h2>
+                    <div id="scenario-tasks" class="scrollable-content">
+                        <!-- JSでタスク記述が入る -->
+                    </div>
+                </div>
+                <div id="validation" class="tab-content">
+                    <h2 class="content-title">Results</h2>
+                    <div class="scrollable-content">
+                        <div id="validation-log" class="validation-log"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- 左側のアクションボタン削除 -->
+        </div>
+
+        <!-- リサイズ用ハンドル -->
+        <div class="resizer" id="layout-resizer"></div>
+
+        <!-- 右側パネル: 操作エリア -->
+        <div class="console-pane">
+            <!-- デバイス切り替えタブ -->
+            <div class="device-tabs-header" id="device-list">
+                <!-- JSでボタン生成 -->
+            </div>
+
+            <!-- ターミナル -->
+            <div class="terminal-container">
+                <iframe src="engine.html" id="term-frame" title="Terminal Engine"></iframe>
+            </div>
+
+            <!-- アクションボタン (右下に配置) -->
+            <div class="action-buttons-bottom-right">
+                <button id="home-btn" class="btn btn-secondary">Home</button>
+                <button id="check-answer-btn" class="btn btn-primary">解答する</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/scenario_data.js"></script>
+    <script src="js/sim_app.js"></script>
+</body>
+
+</html>
