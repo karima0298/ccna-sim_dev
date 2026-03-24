@@ -64,7 +64,7 @@
             
         } else if (sessionStorage.getItem('isSimulatorAuth') !== 'true') {
             // 合言葉がなく、認証記録もない場合：元のサイトへ強制送還
-            window.location.href = RETURN_URL;
+            window.top.location.href = RETURN_URL;
         }
         // --------------------------------------------------
 
