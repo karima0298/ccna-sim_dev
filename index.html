@@ -1,20 +1,70 @@
-<!DOCTYPE html><html lang="ja">
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCNA Simulator - Start</title>
+    <link rel="stylesheet" href="css/style.css">
+    
+    <script>
+        const SECRET_KEY = "actias22"; // ① ここに任意の合言葉（半角英数字）を設定してください
+        const RETURN_URL = "https://script.google.com/macros/s/AKfycbwuT4rJ6aV2Gi-cOVayvDuvMSuu69w35fb6u7XfXsVJ/dev"; // ② 追い返す先のGASのURLを設定してください
+        
+        const currentUrlParams = new URLSearchParams(window.location.search);
+        const providedKey = currentUrlParams.get('key');
 
-<head>    <meta charset="UTF-8">    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>CCNA Simulator - Start</title>    <link rel="stylesheet" href="css/style.css">    <!-- データ定義を読み込んでリストを生成するために参照 -->    <script src="js/scenario_data.js"></script></head>
+        if (providedKey === SECRET_KEY) {
+            // 合言葉が一致した場合：認証済みとして記録し、URLから合言葉を消去
+            sessionStorage.setItem('isSimulatorAuth', 'true');
+            currentUrlParams.delete('key');
+            const newUrl = window.location.pathname + (currentUrlParams.toString() ? '?' + currentUrlParams.toString() : '');
+            window.history.replaceState(null, null, newUrl);
+            
+        } else if (sessionStorage.getItem('isSimulatorAuth') !== 'true') {
+            // 合言葉がなく、認証記録もない場合：元のサイトへ強制送還
+            window.top.location.href = RETURN_URL;
+        }
+    </script>
+    <script src="js/scenario_data.js"></script>
+</head>
 
-<body>    <div class="start-container">        <div class="title-group">            <h1 class="main-title">CCNA Simulator</h1>            <p class="subtitle">powered by Actias</p>        </div>
+<body>
+    <div class="start-container">
+        <div class="title-group">
+            <h1 class="main-title">CCNA Simulator</h1>
+            <p class="subtitle">powered by Actias</p>
+        </div>
 
-        <div class="scenario-grid" id="scenario-list">            <!-- JSで動的に生成 -->        </div>    </div>
+        <div class="scenario-grid" id="scenario-list">
+            </div>
+    </div>
 
-    <script>        document.addEventListener('DOMContentLoaded', () => {            const listEl = document.getElementById('scenario-list');
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const listEl = document.getElementById('scenario-list');
 
-            if (typeof scenarios !== 'undefined') {                scenarios.filter(scene => scene.id !== 'free').forEach(scene => {                    const card = document.createElement('a');                    card.className = 'scenario-card';                    card.href = `simulator.html?scenario=${scene.id}`;
+            if (typeof scenarios !== 'undefined') {
+                scenarios.filter(scene => scene.id !== 'free').forEach(scene => {
+                    const card = document.createElement('a');
+                    card.className = 'scenario-card';
+                    card.href = `simulator.html?scenario=${scene.id}`;
 
-                    if (scene.image) {                        const img = document.createElement('img');                        img.src = scene.image;                        img.alt = scene.title;                        img.className = 'scenario-thumbnail';                        card.appendChild(img);                    }
+                    if (scene.image) {
+                        const img = document.createElement('img');
+                        img.src = scene.image;
+                        img.alt = scene.title;
+                        img.className = 'scenario-thumbnail';
+                        card.appendChild(img);
+                    }
 
-                    const title = document.createElement('h3');                    title.textContent = scene.title;
+                    const title = document.createElement('h3');
+                    title.textContent = scene.title;
 
-                    card.appendChild(title);                    listEl.appendChild(card);                });            }        });    </script></body>
-
-
+                    card.appendChild(title);
+                    listEl.appendChild(card);
+                });
+            }
+        });
+    </script>
+</body>
 </html>
