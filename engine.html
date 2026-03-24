@@ -48,7 +48,7 @@
     <script>
         // --- ★ 外部サイトからのアクセス制限（合言葉方式） ---
         const SECRET_KEY = "actias22"; // ① ここに任意の合言葉（半角英数字）を設定してください
-        const RETURN_URL = "https://script.google.com/macros/s/AKfycbzDg2PXT6QuJOAMP0M7Zk8bWy4UMqerZjXucSUnZICPmCuHIl656iBvC9T4X7Iu6155LQ/exec"; // ② 追い返す先のGASのURLを設定してください
+        const RETURN_URL = "https://script.google.com/macros/s/AKfycbwuT4rJ6aV2Gi-cOVayvDuvMSuu69w35fb6u7XfXsVJ/dev"; // ② 追い返す先のGASのURLを設定してください
         
         const currentUrlParams = new URLSearchParams(window.location.search);
         const providedKey = currentUrlParams.get('key');
