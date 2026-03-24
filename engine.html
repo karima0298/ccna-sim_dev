@@ -307,6 +307,8 @@
                     candidates = ['translations'].filter(cmd => cmd.startsWith(lastWord));
                 } else if (words.length === 4 && (words[0] === 'show' || words[0] === 'sh') && words[1] === 'ip' && (words[2] === 'interface' || words[2] === 'int')) {
                     candidates = ['brief'].filter(cmd => cmd.startsWith(lastWord));
+                } else if (words.length === 2 && (words[0] === 'interface' || words[0] === 'int')) {
+                    candidates = ['range'].filter(cmd => cmd.startsWith(lastWord));
                 } else if (words.length === 2 && (words[0] === 'ip' || words[0] === 'ipv6')) {
                     candidates = ['address', 'access-list', 'route', 'nat', 'ssh', 'dhcp', 'ospf'].filter(cmd => cmd.startsWith(lastWord));
                 } else if (words.length === 3 && words[0] === 'ip' && words[1] === 'access-list') {
@@ -317,6 +319,16 @@
                     candidates = ['telnet', 'ssh', 'all', 'none'].filter(cmd => cmd.startsWith(lastWord));
                 } else if (words.length === 2 && words[0] === 'switchport') {
                     candidates = ['mode', 'access', 'trunk', 'voice', 'port-security'].filter(cmd => cmd.startsWith(lastWord));
+                } else if (words.length === 3 && words[0] === 'switchport' && words[1] === 'mode') {
+                    candidates = ['access', 'trunk'].filter(cmd => cmd.startsWith(lastWord));
+                } else if (words.length === 3 && words[0] === 'switchport' && words[1] === 'access') {
+                    candidates = ['vlan'].filter(cmd => cmd.startsWith(lastWord));
+                } else if (words.length === 3 && words[0] === 'switchport' && words[1] === 'trunk') {
+                    candidates = ['encapsulation', 'allowed'].filter(cmd => cmd.startsWith(lastWord));
+                } else if (words.length === 4 && words[0] === 'switchport' && words[1] === 'trunk' && words[2] === 'encapsulation') {
+                    candidates = ['dot1q'].filter(cmd => cmd.startsWith(lastWord));
+                } else if (words.length === 4 && words[0] === 'switchport' && words[1] === 'trunk' && words[2] === 'allowed') {
+                    candidates = ['vlan'].filter(cmd => cmd.startsWith(lastWord));
                 } else if (words.length === 1) {
                     const vocab = commandVocabulary[mode] || [];
                     candidates = vocab.filter(cmd => cmd.startsWith(lastWord));
@@ -910,6 +922,7 @@
             });
             window.parent.postMessage({ type: 'ENGINE_READY' }, '*');
             
+            // ★修正: パラメータがある場合のみ即座に初期化し、それ以外は LOAD_STATE を無期限で待つ（真っ暗な状態を維持）
             if (paramHostname || paramType) {
                 initializeEngine();
             }
