@@ -313,6 +313,8 @@
                     candidates = ['address', 'access-list', 'route', 'nat', 'ssh', 'dhcp', 'ospf'].filter(cmd => cmd.startsWith(lastWord));
                 } else if (words.length === 3 && words[0] === 'ip' && words[1] === 'access-list') {
                     candidates = ['extended', 'standard'].filter(cmd => cmd.startsWith(lastWord));
+                } else if (words.length === 3 && words[0] === 'ip' && words[1] === 'ospf') {
+                    candidates = ['priority'].filter(cmd => cmd.startsWith(lastWord));
                 } else if (words.length === 2 && words[0] === 'transport') {
                     candidates = ['input'].filter(cmd => cmd.startsWith(lastWord));
                 } else if (words.length === 3 && words[0] === 'transport' && words[1] === 'input') {
@@ -922,7 +924,6 @@
             });
             window.parent.postMessage({ type: 'ENGINE_READY' }, '*');
             
-            // ★修正: パラメータがある場合のみ即座に初期化し、それ以外は LOAD_STATE を無期限で待つ（真っ暗な状態を維持）
             if (paramHostname || paramType) {
                 initializeEngine();
             }
