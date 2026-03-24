@@ -46,6 +46,9 @@
         <div class="help-content" id="help-content"></div>
     </div>
     <script>
+        // ログインチェック：セッション情報がない場合はログイン画面に強制送還 (有効化する場合はコメントアウトを外す)
+        // if (sessionStorage.getItem('isLoggedIn') !== 'true') { window.location.href = 'index.html'; }
+
         document.addEventListener('DOMContentLoaded', function () {
             const terminal = document.getElementById('terminal');
             const promptSpan = document.getElementById('prompt');
@@ -185,10 +188,10 @@
             }
 
             function updateSwitchHelpContent() {
-                helpContent.innerHTML = `<h3>モード移行</h3><ul><li>enable</li><li>conf t</li><li>exit</li></ul><h3>設定</h3><ul><li>vlan [id]</li><li>int range</li><li>switchport access vlan [id]</li><li>cdp/lldp run</li></ul>`;
+                helpContent.innerHTML = `<h3>モード移行</h3><ul><li>enable</li><li>conf t</li><li>exit</li></ul><h3>設定</h3><ul><li>vlan [id]</li><li>int range</li><li>switchport access vlan [id]</li><li>switchport mode trunk</li><li>cdp/lldp run</li><li>channel-group mode active</li></ul>`;
             }
             function updateRouterHelpContent() {
-                 helpContent.innerHTML = `<h3>モード移行</h3><ul><li>enable</li><li>conf t</li></ul><h3>ルーティング/診断</h3><ul><li>router ospf</li><li>ip route</li><li>ping</li><li>traceroute</li><li>show ip interface brief</li></ul>`;
+                 helpContent.innerHTML = `<h3>モード移行</h3><ul><li>enable</li><li>conf t</li></ul><h3>設定/診断</h3><ul><li>router ospf</li><li>ip address</li><li>ipv6 address</li><li>ping</li><li>traceroute</li><li>show ip int br</li></ul>`;
             }
 
             function switchToDeviceMode(mode) {
@@ -266,9 +269,9 @@
             const commandVocabulary = {
                 'user': ['enable', 'ping', 'traceroute', 'ssh', 'show', 'sh', 'exit'],
                 'privileged': ['configure', 'terminal', 'copy', 'write', 'show', 'sh', 'ping', 'traceroute', 'exit', 'vlan', 'delete', 'erase', 'clear'],
-                'config': ['hostname', 'interface', 'ip', 'username', 'line', 'vlan', 'cdp', 'lldp', 'no', 'exit', 'end', 'ntp', 'router'],
-                'interface': ['ip', 'shutdown', 'shut', 'no', 'switchport', 'cdp', 'lldp', 'exit', 'end', 'description'],
-                'interface-range': ['ip', 'shutdown', 'shut', 'no', 'switchport', 'cdp', 'lldp', 'exit', 'end', 'description'],
+                'config': ['hostname', 'interface', 'ip', 'ipv6', 'username', 'line', 'vlan', 'cdp', 'lldp', 'no', 'exit', 'end', 'ntp', 'router'],
+                'interface': ['ip', 'ipv6', 'shutdown', 'shut', 'no', 'switchport', 'channel-group', 'cdp', 'lldp', 'exit', 'end', 'description'],
+                'interface-range': ['ip', 'ipv6', 'shutdown', 'shut', 'no', 'switchport', 'channel-group', 'cdp', 'lldp', 'exit', 'end', 'description'],
                 'vlan': ['name', 'exit', 'end', 'no'],
                 'line': ['transport', 'login', 'password', 'exit', 'end', 'no'],
                 'acl': ['permit', 'deny', 'remark', 'no', 'exit', 'end'],
@@ -307,8 +310,8 @@
                     candidates = ['translations'].filter(cmd => cmd.startsWith(lastWord));
                 } else if (words.length === 4 && (words[0] === 'show' || words[0] === 'sh') && words[1] === 'ip' && (words[2] === 'interface' || words[2] === 'int')) {
                     candidates = ['brief'].filter(cmd => cmd.startsWith(lastWord));
-                } else if (words.length === 2 && words[0] === 'ip') {
-                    candidates = ['access-list', 'route', 'nat', 'ssh', 'dhcp', 'ospf', 'address'].filter(cmd => cmd.startsWith(lastWord));
+                } else if (words.length === 2 && (words[0] === 'ip' || words[0] === 'ipv6')) {
+                    candidates = ['address', 'access-list', 'route', 'nat', 'ssh', 'dhcp', 'ospf'].filter(cmd => cmd.startsWith(lastWord));
                 } else if (words.length === 3 && words[0] === 'ip' && words[1] === 'access-list') {
                     candidates = ['extended', 'standard'].filter(cmd => cmd.startsWith(lastWord));
                 } else if (words.length === 2 && words[0] === 'transport') {
@@ -316,7 +319,7 @@
                 } else if (words.length === 3 && words[0] === 'transport' && words[1] === 'input') {
                     candidates = ['telnet', 'ssh', 'all', 'none'].filter(cmd => cmd.startsWith(lastWord));
                 } else if (words.length === 2 && words[0] === 'switchport') {
-                    candidates = ['mode', 'access', 'port-security'].filter(cmd => cmd.startsWith(lastWord));
+                    candidates = ['mode', 'access', 'trunk', 'voice', 'port-security'].filter(cmd => cmd.startsWith(lastWord));
                 } else if (words.length === 1) {
                     const vocab = commandVocabulary[mode] || [];
                     candidates = vocab.filter(cmd => cmd.startsWith(lastWord));
@@ -420,6 +423,7 @@
                              appendToTerminal(`interface ${i}`);
                              if(intf.switchport && intf.switchport.access_vlan) appendToTerminal(` switchport access vlan ${intf.switchport.access_vlan}`);
                              if(intf.ip) appendToTerminal(` ip address ${intf.ip} ${intf.mask}`);
+                             if(intf.ipv6) appendToTerminal(` ipv6 address ${intf.ipv6}`);
                              if (deviceState.runningConfig.lldp && deviceState.runningConfig.lldp.interfaces && deviceState.runningConfig.lldp.interfaces[i]) {
                                  if (deviceState.runningConfig.lldp.interfaces[i].transmit === false) appendToTerminal(' no lldp transmit');
                                  if (deviceState.runningConfig.lldp.interfaces[i].receive === false) appendToTerminal(' no lldp receive');
@@ -487,11 +491,20 @@
             }
 
             function processRouterModeCommand(mainCommand, args) {
+                const processId = deviceState.currentRouterProcess;
+                if (!deviceState.runningConfig.routing.ospf[processId]) deviceState.runningConfig.routing.ospf[processId] = { networks: [] };
+                
                 if (mainCommand === 'router-id') {
                     if (args.length < 2) { appendToTerminal('% Incomplete command.'); return; }
-                    const processId = deviceState.currentRouterProcess;
-                    if (!deviceState.runningConfig.routing.ospf[processId]) deviceState.runningConfig.routing.ospf[processId] = {};
                     deviceState.runningConfig.routing.ospf[processId].routerId = args[1];
+                } else if (mainCommand === 'network') {
+                    if (args.length < 5 || args[3] !== 'area') { appendToTerminal('% Incomplete command.'); return; }
+                    if (!deviceState.runningConfig.routing.ospf[processId].networks) {
+                        deviceState.runningConfig.routing.ospf[processId].networks = [];
+                    }
+                    deviceState.runningConfig.routing.ospf[processId].networks.push({
+                        ip: args[1], wildcard: args[2], area: args[4]
+                    });
                 } else if (mainCommand === 'exit') {
                     deviceState.mode = deviceState.configStack.pop() || 'config';
                     updatePrompt();
@@ -517,7 +530,7 @@
                             deviceState.currentRouterProcess = processId;
                             if (!deviceState.runningConfig.routing) deviceState.runningConfig.routing = { staticRoutes: [], ospf: {} };
                             if (!deviceState.runningConfig.routing.ospf) deviceState.runningConfig.routing.ospf = {};
-                            if (!deviceState.runningConfig.routing.ospf[processId]) deviceState.runningConfig.routing.ospf[processId] = {};
+                            if (!deviceState.runningConfig.routing.ospf[processId]) deviceState.runningConfig.routing.ospf[processId] = { networks: [] };
                             updatePrompt();
                         } else { appendToTerminal('% Invalid input detected at \'^\''); }
                         break;
@@ -672,14 +685,41 @@
                                 }
                             }
                             break;
+                        case 'channel-group':
+                            if (args.length < 4 || args[2] !== 'mode') { incomplete = true; break; }
+                            if (!conf.channelGroup) conf.channelGroup = {};
+                            conf.channelGroup.id = args[1];
+                            conf.channelGroup.mode = args[3];
+                            commandFound = true; break;
                         case 'switchport':
                             if (args.length < 2) { incomplete = true; break; }
                             if (args[1] === 'mode') {
                                 if (args.length < 3) { incomplete = true; break; }
                                 conf.switchport.mode = args[2];
                             } else if (args[1] === 'access') {
-                                if (args.length < 4) { incomplete = true; break; } 
+                                if (args.length < 4 || args[2] !== 'vlan') { incomplete = true; break; } 
                                 conf.switchport.access_vlan = args[3];
+                            } else if (args[1] === 'voice') {
+                                if (args.length < 4 || args[2] !== 'vlan') { incomplete = true; break; } 
+                                conf.switchport.voice_vlan = args[3];
+                            } else if (args[1] === 'trunk') {
+                                if (args.length < 3) { incomplete = true; break; }
+                                if (args[2] === 'encapsulation') {
+                                    if (args.length < 4) { incomplete = true; break; }
+                                    conf.switchport.encapsulation = args[3];
+                                } else if (args[2] === 'allowed') {
+                                    let vlansStr = '';
+                                    if (args[3] === 'vlan' && args[4]) {
+                                        vlansStr = args[4];
+                                    } else if (args[3] && args[3] !== 'vlan') {
+                                        vlansStr = args[3]; // "allowed 12" などのタイポ対応
+                                    }
+                                    if (vlansStr) {
+                                        conf.switchport.allowed_vlans = vlansStr.split(',');
+                                    } else {
+                                        incomplete = true; break;
+                                    }
+                                }
                             } else if (args[1] === 'port-security') {
                                 if (!conf.portSecurity) conf.portSecurity = {};
                                 if (args.length === 2) conf.portSecurity.enabled = true;
@@ -729,6 +769,13 @@
                                 }
                             }
                             commandFound = true; break;
+                        case 'ipv6':
+                            if (args.length < 2) { incomplete = true; break; }
+                            if (args[1] === 'address' || args[1] === 'add') {
+                                if (args.length < 3) { incomplete = true; break; }
+                                conf.ipv6 = args[2];
+                            }
+                            commandFound = true; break;
                         default: break;
                     }
                 }
@@ -738,7 +785,7 @@
             function processVlanModeCommand(mainCommand, args) {
                 if (mainCommand === 'name') {
                     if (args.length < 2) appendToTerminal('% Incomplete command.');
-                    else deviceState.runningConfig.vlans[deviceState.currentVlan].name = args[1];
+                    else deviceState.runningConfig.vlans[deviceState.currentVlan].name = args.slice(1).join(' ');
                 }
                 else if (mainCommand === 'exit') { deviceState.mode = deviceState.configStack.pop(); updatePrompt(); }
                 else if (mainCommand === 'end') { deviceState.mode = 'privileged'; deviceState.configStack = []; updatePrompt(); return; }
