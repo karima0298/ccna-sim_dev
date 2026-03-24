@@ -103,17 +103,46 @@ const scenarios = [
       </div>
     `,
     tasks: [
-      "R2でOSPFを設定し、R1 と R2 がネイバーになることを確認します。<br>・プロセス ID として 10 を使用<br>・ルーター ID として Lo0のIP を使用<br>・R1がR2およびR3とのネイバー隣接関係を確立するように設定してください。使用されているプレフィックスと完全に一致するように接続されたネットワークをアドバタイズします。",
+      "R2でOSPFを設定し、R1 と R2 がネイバーになることを確認します。<br>・プロセス ID として 10 を使用<br>・ルーター ID として L0のIP を使用<br>・R1がR2およびR3とのネイバー隣接関係を確立するように設定してください。使用されているプレフィックスと完全に一致するように接続されたネットワークをアドバタイズします。",
       "R2が常にエリア0のDRになるように設定してください。"
     ],
     devices: [
       { name: "R2", type: "router", physicalPorts: ["Ethernet0/0", "Ethernet0/1"] }
     ],
     validations: [
-      { device: "R2", path: "runningConfig.routing.ospf.10.routerId", expected: "10.2.2.2", message: "R2: OSPF 10 のルーターIDが 10.2.2.2 に設定されていません" },
-      { device: "R2", path: "runningConfig.routing.ospf.10.networks", condition: (nets) => nets && nets.some(n => n.ip === '10.2.2.2' && n.wildcard === '0.0.0.0' && n.area === '0'), message: "R2: network 10.2.2.2 0.0.0.0 area 0 が設定されていません" },
-      { device: "R2", path: "runningConfig.routing.ospf.10.networks", condition: (nets) => nets && nets.some(n => n.ip === '10.0.12.0' && n.wildcard === '0.0.0.3' && n.area === '0'), message: "R2: network 10.0.12.0 0.0.0.3 area 0 が設定されていません" },
-      { device: "R2", path: "runningConfig.routing.ospf.10.networks", condition: (nets) => nets && nets.some(n => n.ip === '10.0.23.0' && n.wildcard === '0.0.0.15' && n.area === '0'), message: "R2: network 10.0.23.0 0.0.0.15 area 0 が設定されていません" },
+      { 
+        device: "R2", 
+        path: "runningConfig", 
+        condition: (config) => config?.routing?.ospf?.['10']?.routerId === '10.2.2.2', 
+        message: "R2: OSPF 10 のルーターIDが 10.2.2.2 に設定されていません" 
+      },
+      { 
+        device: "R2", 
+        path: "runningConfig", 
+        condition: (config) => {
+            const nets = config?.routing?.ospf?.['10']?.networks;
+            return nets && nets.some(n => n.ip === '10.2.2.2' && n.wildcard === '0.0.0.0' && n.area === '0');
+        }, 
+        message: "R2: network 10.2.2.2 0.0.0.0 area 0 が設定されていません" 
+      },
+      { 
+        device: "R2", 
+        path: "runningConfig", 
+        condition: (config) => {
+            const nets = config?.routing?.ospf?.['10']?.networks;
+            return nets && nets.some(n => n.ip === '10.0.12.0' && n.wildcard === '0.0.0.3' && n.area === '0');
+        }, 
+        message: "R2: network 10.0.12.0 0.0.0.3 area 0 が設定されていません" 
+      },
+      { 
+        device: "R2", 
+        path: "runningConfig", 
+        condition: (config) => {
+            const nets = config?.routing?.ospf?.['10']?.networks;
+            return nets && nets.some(n => n.ip === '10.0.23.0' && n.wildcard === '0.0.0.15' && n.area === '0');
+        }, 
+        message: "R2: network 10.0.23.0 0.0.0.15 area 0 が設定されていません" 
+      },
       { device: "R2", path: "runningConfig.interfaces.Ethernet0/0.ospf.priority", expected: 255, message: "R2: Ethernet0/0 の OSPF priority が 255 に設定されていません" },
       { device: "R2", path: "runningConfig.interfaces.Ethernet0/1.ospf.priority", expected: 255, message: "R2: Ethernet0/1 の OSPF priority が 255 に設定されていません" },
       { device: "R2", path: "runningConfig.logs", condition: (logs) => logs && logs.some(l => l.command === 'clear' && l.target === 'ip ospf process'), message: "R2: OSPFプロセスのクリアが実行されていません" }
@@ -134,8 +163,8 @@ const scenarios = [
       </div>
     `,
     tasks: [
-      "R1のe0/0にipv4 ネットワークで使用可能な最初のホスト IP アドレスを設定します。<br>R2のe0/0にIPv4 ネットワークで使用可能な最後のホスト IP アドレスを設定します。",
-      "R1のe0/0にIPv6 ネットワークで使用可能な最初のホスト IP アドレスを設定します。<br>R2のe0/0にIPv6 ネットワークで使用可能な最後のホスト IP アドレスを設定します。"
+      "R1に、ipv4 ネットワークで使用可能な最初のホスト IP アドレスを設定します。<br>R2に、IPv4 ネットワークで使用可能な最後のホスト IP アドレスを設定します。",
+      "R1 にIPv6 ネットワークで使用可能な最初のホスト IP アドレスを設定します。<br>R2 にIPv6 ネットワークで使用可能な最後のホスト IP アドレスを設定します。"
     ],
     devices: [
       { name: "R1", type: "router", physicalPorts: ["Ethernet0/0"] },
@@ -166,9 +195,9 @@ const scenarios = [
       </div>
     `,
     tasks: [
-      "IEEE 標準フレームタグ付け方式を使用して、ポートEO/0とE0/1 上でSW1 と SW2間のトランクを設定します。またVLAN1,11,12のみが通信出来るように設定します",
+      "IEEE 標準フレームタグ付け方式を使用して、ポートEO/0とE0/1 上でSW1 と SW2間のトランクを設定します。<br>またVLAN1,11,12のみが通信出来るように設定します",
       "vlan12のみを許可するようにSW1の0/2を設定します",
-      "Sw1とSw2でLACPを設定します。E0/0とEO/1を単一の論理リンクに統合し、トランク構成はそのまま維持します。リンクに番号12を割り当てます。両方のリンクでネゴシエーションを行う必要があります。"
+      "Sw1とSw2でLACPを設定します。<br>E0/0とEO/1を単一の論理リンクに統合し、トランク構成はそのまま維持します。<br>リンクに番号12を割り当てます。<br>両方のリンクでネゴシエーションを行う必要があります。"
     ],
     devices: [
       { name: "Sw1", type: "switch", physicalPorts: ["Ethernet0/0", "Ethernet0/1", "Ethernet0/2"] },
