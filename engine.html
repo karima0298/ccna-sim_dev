@@ -46,28 +46,6 @@
         <div class="help-content" id="help-content"></div>
     </div>
     <script>
-        // --- ★ 外部サイトからのアクセス制限（合言葉方式） ---
-        const SECRET_KEY = "actias22"; // ① ここに任意の合言葉（半角英数字）を設定してください
-        const RETURN_URL = "https://script.google.com/macros/s/AKfycbwuT4rJ6aV2Gi-cOVayvDuvMSuu69w35fb6u7XfXsVJ/dev"; // ② 追い返す先のGASのURLを設定してください
-        
-        const currentUrlParams = new URLSearchParams(window.location.search);
-        const providedKey = currentUrlParams.get('key');
-
-        if (providedKey === SECRET_KEY) {
-            // 合言葉が一致した場合：認証済みとして記録し、URLから合言葉を消去（ブックマーク対策）
-            sessionStorage.setItem('isSimulatorAuth', 'true');
-            
-            // URLパラメータから key だけを削除して綺麗なURLに戻す
-            currentUrlParams.delete('key');
-            const newUrl = window.location.pathname + (currentUrlParams.toString() ? '?' + currentUrlParams.toString() : '');
-            window.history.replaceState(null, null, newUrl);
-            
-        } else if (sessionStorage.getItem('isSimulatorAuth') !== 'true') {
-            // 合言葉がなく、認証記録もない場合：元のサイトへ強制送還
-            window.top.location.href = RETURN_URL;
-        }
-        // --------------------------------------------------
-
         document.addEventListener('DOMContentLoaded', function () {
             const terminal = document.getElementById('terminal');
             const promptSpan = document.getElementById('prompt');
