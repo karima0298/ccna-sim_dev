@@ -262,7 +262,7 @@ const scenarios = [
       { device: "Sw1", path: "runningConfig.vlans.77.name", expected: "User_VLAN", message: "Sw1: VLAN 77 の名前が 'User_VLAN' ではありません" },
       { device: "Sw1", path: "runningConfig.vlans.177.name", expected: "Voice_VLAN", message: "Sw1: VLAN 177 の名前が 'Voice_VLAN' ではありません" },
       { device: "Sw2", path: "runningConfig.vlans.77.name", expected: "User_VLAN", message: "Sw2: VLAN 77 の名前が 'User_VLAN' ではありません" },
-      { device: "Sw2", path: "runningConfig.vlans.177.name", expected: "User_VLAN", message: "Sw2: VLAN 77 の名前が 'User_VLAN' ではありません" },
+      { device: "Sw2", path: "runningConfig.vlans.177.name", expected: "Voice_VLAN", message: "Sw2: VLAN 177 の名前が 'Voice_VLAN' ではありません" },
       
       { device: "Sw1", path: "runningConfig.interfaces.Ethernet0/1.switchport.mode", expected: "access", message: "Sw1: E0/1 が access モードではありません" },
       { device: "Sw1", path: "runningConfig.interfaces.Ethernet0/1.switchport.access_vlan", expected: "77", message: "Sw1: E0/1 に Data VLAN 77 が設定されていません" },
