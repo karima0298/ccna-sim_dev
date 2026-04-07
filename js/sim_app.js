@@ -471,19 +471,34 @@ function initScenario(scenarioId) {
         logEl.style.color = '#333'; // Reset color
     }
 
-    // タスク表示 (Tasksタブ)
+    // ▼ ▼ タスク表示 (Tasksタブ) - 練習モード対応 ▼ ▼
     const tasksEl = document.getElementById('scenario-tasks');
     if (tasksEl) {
         let tasksHtml = '';
         if (scenario.tasksHtml) {
             tasksHtml = scenario.tasksHtml;
         } else if (scenario.tasks && Array.isArray(scenario.tasks) && scenario.tasks.length > 0) {
-            tasksHtml = '<ol>' + scenario.tasks.map(t => `<li>${t}</li>`).join('') + '</ol>';
+            tasksHtml = '<ol>';
+            scenario.tasks.forEach((t, index) => {
+                tasksHtml += `<li>${t}</li>`;
+                
+                // 練習モード（isPracticeMode）かつ、該当する解答が設定されている場合にコマンドを表示
+                if (isPracticeMode && scenario.answers && scenario.answers[index]) {
+                    tasksHtml += `
+                        <div class="command-hint-box">
+                            <span class="command-hint-label">💡 解答コマンド</span>
+                            <pre class="command-hint-code">${scenario.answers[index]}</pre>
+                        </div>
+                    `;
+                }
+            });
+            tasksHtml += '</ol>';
         } else {
             tasksHtml = '<p>Refer to the Guidelines or Topology for tasks.</p>';
         }
         tasksEl.innerHTML = tasksHtml;
     }
+    // ▲ ▲ ここまで ▲ ▲
 
     // タブの初期化 (ワンタイム)
     initTabs();
@@ -945,9 +960,11 @@ document.getElementById('home-btn').addEventListener('click', () => {
     window.location.href = 'index.html';
 });
 
+// ▼ ここから追加・変更：練習モードフラグの取得 ▼
 // 初期化実行 (URLパラメータからシナリオID取得)
 const urlParams = new URLSearchParams(window.location.search);
 let sceneId = urlParams.get('scenario');
+const isPracticeMode = urlParams.get('mode') === 'practice'; // URLから練習モードかを判定
 
 // フォールバック: シナリオ指定がない場合は question1 をデフォルトとする
 if (!sceneId) {
