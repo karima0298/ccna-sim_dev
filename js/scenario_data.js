@@ -11,11 +11,7 @@ const scenarios = [
     tasks: []
   },
 
-// =========================================================================================
-// 【新】シミュレーション問題 (PDF版)
-// =========================================================================================
-
-  // -------------------------------------------------------------
+// -------------------------------------------------------------
   // 【新】問題①: VLANとLLDPの設定
   // -------------------------------------------------------------
   {
@@ -35,6 +31,32 @@ const scenarios = [
       "PC2に接続するスイッチポートを設定します",
       "業界標準プロトコルを使用して、SW-1とSW-2をユニバーサルネイバーディスカバリに設定し、PC1に接続するインターフェースで無効にします。"
     ],
+    // ▼ 練習モード用の解答を追加 ▼
+    answers: [
+`SW-1(config)#vlan 35
+SW-1(config-vlan)#name SALES
+SW-1(config-vlan)#exit`,
+
+`SW-2(config)#vlan 39
+SW-2(config-vlan)#name MARKETING
+SW-2(config-vlan)#exit`,
+
+`SW-1(config)#int e0/2
+SW-1(config-if)#switchport mode access
+SW-1(config-if)#switchport access vlan 35`,
+
+`SW-2(config)#int e0/2
+SW-2(config-if)#switchport mode access
+SW-2(config-if)#switchport access vlan 39`,
+
+`! SW-1とSW-2の両方でLLDPをグローバルに有効化する
+SW-1、SW-2(config)#lldp run
+
+! PC1に接続するインターフェースでLLDPを無効にする
+SW-1(config)#int e0/2
+SW-1(config-if)#no lldp receive
+SW-1(config-if)#no lldp transmit`
+    ],
     devices: [
       { name: "SW-1", type: "switch", physicalPorts: ["Ethernet0/0", "Ethernet0/1", "Ethernet0/2"] },
       { name: "SW-2", type: "switch", physicalPorts: ["Ethernet0/0", "Ethernet0/1", "Ethernet0/2"] }
@@ -50,7 +72,6 @@ const scenarios = [
       { device: "SW-2", path: "runningConfig.lldp.enabled", expected: true, message: "SW-2: LLDPがグローバルで有効になっていません" },
       { device: "SW-1", path: "runningConfig.lldp.interfaces.Ethernet0/2.receive", expected: false, message: "SW-1: Ethernet0/2 で lldp receive が無効になっていません" },
       { device: "SW-1", path: "runningConfig.lldp.interfaces.Ethernet0/2.transmit", expected: false, message: "SW-1: Ethernet0/2 で lldp transmit が無効になっていません" },
-      // ★ 設定保存チェック
       { device: "SW-1", path: "runningConfig.startupConfig", condition: (val) => val != null, message: "SW-1: 設定が保存されていません (copy run start を実行してください)" },
       { device: "SW-2", path: "runningConfig.startupConfig", condition: (val) => val != null, message: "SW-2: 設定が保存されていません (copy run start を実行してください)" }
     ]
@@ -75,6 +96,27 @@ const scenarios = [
       "PC3に接続するスイッチポートを設定します",
       "R1がCisco独自の近隣探索プロトコルを使用してSW-1を検出し、ネットワーク上の他のすべてのデバイスがSW-1を検出できないことを確認します。"
     ],
+    // ▼ 練習モード用の解答を追加 ▼
+    answers: [
+`SW-2(config)#vlan 30
+SW-2(config-vlan)#name SALES
+SW-2(config-vlan)#exit`,
+
+`SW-2(config)#int e0/2
+SW-2(config-if)#switchport mode access
+SW-2(config-if)#switchport access vlan 20`,
+
+`SW-2(config-if)#int e0/3
+SW-2(config-if)#switchport mode access
+SW-2(config-if)#switchport access vlan 30`,
+
+`SW-1(config)#cdp run
+SW-1(config)#int e0/0
+SW-1(config-if)#cdp enable
+SW-1(config-if)#exit
+SW-1(config)#int range e0/1 - 2
+SW-1(config-if-range)#no cdp enable`
+    ],
     devices: [
       { name: "SW-1", type: "switch", physicalPorts: ["Ethernet0/0", "Ethernet0/1", "Ethernet0/2"] },
       { name: "SW-2", type: "switch", physicalPorts: ["Ethernet0/0", "Ethernet0/1", "Ethernet0/2", "Ethernet0/3"] }
@@ -89,7 +131,6 @@ const scenarios = [
       { device: "SW-1", path: "runningConfig.cdp.interfaces.Ethernet0/0", condition: (val) => val !== false, message: "SW-1: Ethernet0/0 で CDP が有効になっていません" },
       { device: "SW-1", path: "runningConfig.cdp.interfaces.Ethernet0/1", expected: false, message: "SW-1: Ethernet0/1 で CDP が無効になっていません" },
       { device: "SW-1", path: "runningConfig.cdp.interfaces.Ethernet0/2", expected: false, message: "SW-1: Ethernet0/2 で CDP が無効になっていません" },
-      // ★ 設定保存チェック
       { device: "SW-1", path: "runningConfig.startupConfig", condition: (val) => val != null, message: "SW-1: 設定が保存されていません (copy run start を実行してください)" },
       { device: "SW-2", path: "runningConfig.startupConfig", condition: (val) => val != null, message: "SW-2: 設定が保存されていません (copy run start を実行してください)" }
     ]
@@ -112,47 +153,41 @@ const scenarios = [
       "R2でOSPFを設定し、R1 と R2 がネイバーになることを確認します。<br>・プロセス ID として 10 を使用<br>・ルーター ID として L0のIP を使用<br>・R1がR2およびR3とのネイバー隣接関係を確立するように設定してください。使用されているプレフィックスと完全に一致するように接続されたネットワークをアドバタイズします。",
       "R2が常にエリア0のDRになるように設定してください。"
     ],
+    // ▼ 練習モード用の解答と解説を追加 ▼
+    answers: [
+`R2(config)#router ospf 10
+R2(config-router)#router-id 10.2.2.2
+R2(config-router)#network 10.2.2.2 0.0.0.0 area 0
+R2(config-router)#network 10.0.12.0 0.0.0.3 area 0
+R2(config-router)#network 10.0.23.0 0.0.0.15 area 0`,
+
+`R2(config)#interface range e0/0 - 1
+R2(config-if-range)#ip ospf priority 255
+R2(config-if-range)#end
+R2#clear ip ospf process
+
+【解説】
+ip ospf priority 255を設定する理由は、対象のルータ（今回の場合はR2）をOSPFのDR（代表ルータ）に確実に選出させるためです。
+OSPFのDR/BDR選出プロセスでは、インターフェースのプライオリティ値（0〜255、デフォルトは1）が最も高いルータが優先的にDRとして選ばれます。そのため、設定できる最高値である「255」を明示的に割り当てることで、他のルータのルータIDの大小に関係なく、R2が常にDRになるようにしています。
+
+clear ip ospf processコマンドを実行する理由は代表ルータの選出を再度行うためです。
+clear ip ospf processコマンドは実行した際にyes/noを入力する必要があります。
+
+R2# clear ip ospf process
+Reset ALL OSPF processes? [no]: yes　←このyesを入力してEnter
+OSPF processes reset`
+    ],
     devices: [
       { name: "R2", type: "router", physicalPorts: ["Ethernet0/0", "Ethernet0/1"] }
     ],
     validations: [
-      { 
-        device: "R2", 
-        path: "runningConfig", 
-        condition: (config) => config?.routing?.ospf?.['10']?.routerId === '10.2.2.2', 
-        message: "R2: OSPF 10 のルーターIDが 10.2.2.2 に設定されていません" 
-      },
-      { 
-        device: "R2", 
-        path: "runningConfig", 
-        condition: (config) => {
-            const nets = config?.routing?.ospf?.['10']?.networks;
-            return nets && nets.some(n => n.ip === '10.2.2.2' && n.wildcard === '0.0.0.0' && n.area === '0');
-        }, 
-        message: "R2: network 10.2.2.2 0.0.0.0 area 0 が設定されていません" 
-      },
-      { 
-        device: "R2", 
-        path: "runningConfig", 
-        condition: (config) => {
-            const nets = config?.routing?.ospf?.['10']?.networks;
-            return nets && nets.some(n => n.ip === '10.0.12.0' && n.wildcard === '0.0.0.3' && n.area === '0');
-        }, 
-        message: "R2: network 10.0.12.0 0.0.0.3 area 0 が設定されていません" 
-      },
-      { 
-        device: "R2", 
-        path: "runningConfig", 
-        condition: (config) => {
-            const nets = config?.routing?.ospf?.['10']?.networks;
-            return nets && nets.some(n => n.ip === '10.0.23.0' && n.wildcard === '0.0.0.15' && n.area === '0');
-        }, 
-        message: "R2: network 10.0.23.0 0.0.0.15 area 0 が設定されていません" 
-      },
+      { device: "R2", path: "runningConfig", condition: (config) => config?.routing?.ospf?.['10']?.routerId === '10.2.2.2', message: "R2: OSPF 10 のルーターIDが 10.2.2.2 に設定されていません" },
+      { device: "R2", path: "runningConfig", condition: (config) => { const nets = config?.routing?.ospf?.['10']?.networks; return nets && nets.some(n => n.ip === '10.2.2.2' && n.wildcard === '0.0.0.0' && n.area === '0'); }, message: "R2: network 10.2.2.2 0.0.0.0 area 0 が設定されていません" },
+      { device: "R2", path: "runningConfig", condition: (config) => { const nets = config?.routing?.ospf?.['10']?.networks; return nets && nets.some(n => n.ip === '10.0.12.0' && n.wildcard === '0.0.0.3' && n.area === '0'); }, message: "R2: network 10.0.12.0 0.0.0.3 area 0 が設定されていません" },
+      { device: "R2", path: "runningConfig", condition: (config) => { const nets = config?.routing?.ospf?.['10']?.networks; return nets && nets.some(n => n.ip === '10.0.23.0' && n.wildcard === '0.0.0.15' && n.area === '0'); }, message: "R2: network 10.0.23.0 0.0.0.15 area 0 が設定されていません" },
       { device: "R2", path: "runningConfig.interfaces.Ethernet0/0.ospf.priority", expected: 255, message: "R2: Ethernet0/0 の OSPF priority が 255 に設定されていません" },
       { device: "R2", path: "runningConfig.interfaces.Ethernet0/1.ospf.priority", expected: 255, message: "R2: Ethernet0/1 の OSPF priority が 255 に設定されていません" },
       { device: "R2", path: "runningConfig.logs", condition: (logs) => logs && logs.some(l => l.command === 'clear' && l.target === 'ip ospf process'), message: "R2: OSPFプロセスのクリアが実行されていません" },
-      // ★ 設定保存チェック
       { device: "R2", path: "runningConfig.startupConfig", condition: (val) => val != null, message: "R2: 設定が保存されていません (copy run start を実行してください)" }
     ]
   },
@@ -174,6 +209,42 @@ const scenarios = [
       "R1に、ipv4 ネットワークで使用可能な最初のホスト IP アドレスを設定します。<br>R2に、IPv4 ネットワークで使用可能な最後のホスト IP アドレスを設定します。",
       "R1 にIPv6 ネットワークで使用可能な最初のホスト IP アドレスを設定します。<br>R2 にIPv6 ネットワークで使用可能な最後のホスト IP アドレスを設定します。"
     ],
+    // ▼ 練習モード用の解答と解説を追加 ▼
+    answers: [
+`R1(config)#interface e0/0
+R1(config-if)#ip address 10.0.12.5 255.255.255.252
+R1(config-if)#no shut
+
+R2(config)#interface e0/0
+R2(config-if)#ip address 10.0.12.6 255.255.255.252
+R2(config-if)#no shut`,
+
+`R1(config)#interface e0/0
+R1(config-if)#ipv6 address 2001:db8:12::1/126
+
+R2(config)#interface e0/0
+R2(config-if)#ipv6 address 2001:db8:12::3/126
+
+【解説】IPv6アドレス（/126）の計算方法
+プレフィックス長 /126 のIPv6ネットワークから、割り当て可能な「最初」と「最後」のホストIPアドレスを算出する手順は下記となります。
+
+1. ホスト部のビット数を確認する
+IPv6アドレスの全体は128ビットです。今回指定されているネットワークのプレフィックス長は /126 のため、128から126を引いた残りのビット数がホスト部となります。
+128ビット - 126ビット = 2ビット
+
+2.サブネット内のアドレス範囲を割り出す
+ホスト部が2ビットの場合、作ることができるアドレスのパターンは 2の2乗 で合計 4個 となります。
+指定されたサブネット 2001:db8:12::/126 における末尾の4パターンは以下の通りです。
+2001:db8:12::0 （Anycast用アドレス等として予約済のため使用不可）
+2001:db8:12::1 （最初に使用可能なホストIP）
+2001:db8:12::2
+2001:db8:12::3 （最後に使用可能なホストIP　※IPv6にはブロードキャストアドレスがありません）
+
+3.各機器にアドレスを割り当てる
+タスクの要件に合わせて、算出したアドレスをR1とR2にそれぞれ設定します。
+R1（最初のホストIP）： 2001:db8:12::1/126
+R2（最後のホストIP）： 2001:db8:12::3/126`
+    ],
     devices: [
       { name: "R1", type: "router", physicalPorts: ["Ethernet0/0"] },
       { name: "R2", type: "router", physicalPorts: ["Ethernet0/0"] }
@@ -186,7 +257,6 @@ const scenarios = [
       { device: "R2", path: "runningConfig.interfaces.Ethernet0/0.ipv6", expected: "2001:db8:12::3/126", message: "R2: IPv6アドレスが 2001:db8:12::3/126 に設定されていません" },
       { device: "R1", path: "runningConfig.interfaces.Ethernet0/0.status", expected: "up", message: "R1: インターフェースが起動していません (no shut)" },
       { device: "R2", path: "runningConfig.interfaces.Ethernet0/0.status", expected: "up", message: "R2: インターフェースが起動していません (no shut)" },
-      // ★ 設定保存チェック
       { device: "R1", path: "runningConfig.startupConfig", condition: (val) => val != null, message: "R1: 設定が保存されていません (copy run start を実行してください)" },
       { device: "R2", path: "runningConfig.startupConfig", condition: (val) => val != null, message: "R2: 設定が保存されていません (copy run start を実行してください)" }
     ]
@@ -210,12 +280,25 @@ const scenarios = [
       "vlan12のみを許可するようにSW1の0/2を設定します",
       "Sw1とSw2でLACPを設定します。<br>E0/0とEO/1を単一の論理リンクに統合し、トランク構成はそのまま維持します。<br>リンクに番号12を割り当てます。<br>両方のリンクでネゴシエーションを行う必要があります。"
     ],
+    // ▼ 練習モード用の解答を追加 ▼
+    answers: [
+`Sw1,Sw2(config)#interface range e0/0 - 1
+Sw1,Sw2(config-if-range)#switchport trunk encapsulation dot1q
+Sw1,Sw2(config-if-range)#switchport mode trunk
+Sw1,Sw2(config-if-range)#switchport trunk allowed vlan 1,11,12`,
+
+`Sw1(config)#interface e0/2
+Sw1(config-if-range)#switchport trunk encapsulation dot1q
+Sw1(config-if-range)#switchport mode trunk
+Sw1(config-if-range)#switchport trunk allowed 12`,
+
+`Sw1,Sw2(config-if-range)#channel-group 12 mode active`
+    ],
     devices: [
       { name: "Sw1", type: "switch", physicalPorts: ["Ethernet0/0", "Ethernet0/1", "Ethernet0/2"] },
       { name: "Sw2", type: "switch", physicalPorts: ["Ethernet0/0", "Ethernet0/1"] }
     ],
     validations: [
-      // Sw1, Sw2 e0/0, e0/1 Trunk & EtherChannel
       { device: "Sw1", path: "runningConfig.interfaces.Ethernet0/0.switchport.encapsulation", expected: "dot1q", message: "Sw1: E0/0 のトランクカプセル化が dot1q ではありません" },
       { device: "Sw1", path: "runningConfig.interfaces.Ethernet0/0.switchport.mode", expected: "trunk", message: "Sw1: E0/0 が trunk モードではありません" },
       { device: "Sw1", path: "runningConfig.interfaces.Ethernet0/0.switchport.allowed_vlans", match: "containsAll", expected: ["1", "11", "12"], message: "Sw1: E0/0 で VLAN 1, 11, 12 が許可されていません" },
@@ -225,12 +308,10 @@ const scenarios = [
       { device: "Sw2", path: "runningConfig.interfaces.Ethernet0/0.switchport.encapsulation", expected: "dot1q", message: "Sw2: E0/0 のトランクカプセル化が dot1q ではありません" },
       { device: "Sw2", path: "runningConfig.interfaces.Ethernet0/0.channelGroup.mode", expected: "active", message: "Sw2: E0/0 の LACPモード が active ではありません" },
       
-      // Sw1 e0/2 Trunk Allowed 12
       { device: "Sw1", path: "runningConfig.interfaces.Ethernet0/2.switchport.encapsulation", expected: "dot1q", message: "Sw1: E0/2 のトランクカプセル化が dot1q ではありません" },
       { device: "Sw1", path: "runningConfig.interfaces.Ethernet0/2.switchport.mode", expected: "trunk", message: "Sw1: E0/2 が trunk モードではありません" },
       { device: "Sw1", path: "runningConfig.interfaces.Ethernet0/2.switchport.allowed_vlans", match: "contains", expected: "12", message: "Sw1: E0/2 で VLAN 12 が許可されていません" },
       
-      // ★ 設定保存チェック
       { device: "Sw1", path: "runningConfig.startupConfig", condition: (val) => val != null, message: "Sw1: 設定が保存されていません (copy run start を実行してください)" },
       { device: "Sw2", path: "runningConfig.startupConfig", condition: (val) => val != null, message: "Sw2: 設定が保存されていません (copy run start を実行してください)" }
     ]
