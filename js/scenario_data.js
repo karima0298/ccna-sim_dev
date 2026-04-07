@@ -384,7 +384,7 @@ const scenarios = [
     ]
   },
 
-  // -------------------------------------------------------------
+// -------------------------------------------------------------
   // 【新】問題⑨: OSPFプロセスの設定（インターフェースベース）
   // -------------------------------------------------------------
   {
@@ -401,6 +401,13 @@ const scenarios = [
       "タスク1. プロセス ID とルータ ID のみを使用して R1 上の OSPF を設定します。<br>・プロセス ID として 30 を使用<br>・ルーター ID として E0/0のIP を使用",
       "タスク2. R1がR2およびR3とネイバー関係を確立するように設定します。OSPFプロセスのネットワークステートメントは使用しないでください。<br>R1が常にエリア0のDRになるように設定してください。"
     ],
+    // ▼ ここから練習モード用の解答・解説を追加 ▼
+    answers: [
+      "R1(config)#router ospf 30\nR1(config-router)#router-id 10.0.12.1\n\n【解説】\n※上記のe0/0のIPアドレスは構成図上に書いていないので、本来は show run コマンド等で確認して設定する必要がありますが、構成図内のIPアドレスが変わっていなければ確認せずに上記のIPを決め打ちしても大丈夫です。",
+      
+      "R1(config)#int range e0/0 - 1\nR1(config-if-range)#ip ospf 30 area 0\nR1(config-if-range)#ip ospf priority 255\nR1(config-if-range)#end\nR1#clear ip ospf process\n\n【解説】\nip ospf priority 255を設定する理由は、対象のルータ（今回の場合はR1）をOSPFのDR（代表ルータ）に確実に選出させるためです。\nOSPFのDR/BDR選出プロセスでは、インターフェースのプライオリティ値（0〜255、デフォルトは1）が最も高いルータが優先的にDRとして選ばれます。そのため、設定できる最高値である「255」を明示的に割り当てることで、他のルータのルータIDの大小に関係なく、R1が常にDRになるようにしています。\n\nclear ip ospf process コマンドを実行する理由は代表ルータの選出を再度行うためです。\nこのコマンドは実行した際にyes/noを入力する必要があります。\n\nR1# clear ip ospf process\nReset ALL OSPF processes? [no]: yes　←このyesを入力してEnter\nOSPF processes reset"
+    ],
+    // ▲ ここまで追加 ▲
     devices: [
       { name: "R1", type: "router", physicalPorts: ["Ethernet0/0", "Ethernet0/1"] }
     ],
@@ -415,4 +422,4 @@ const scenarios = [
       { device: "R1", path: "runningConfig.logs", condition: (logs) => logs && logs.some(l => l.command === 'clear' && l.target === 'ip ospf process'), message: "R1: OSPFプロセスのクリアが実行されていません" }
     ]
   }
-];
+]; // ← シナリオ配列の閉じカッコ
