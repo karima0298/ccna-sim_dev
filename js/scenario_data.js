@@ -236,7 +236,7 @@ const scenarios = [
     ]
   },
 
-  // -------------------------------------------------------------
+// -------------------------------------------------------------
   // 【新】問題⑥: Voice VLAN と LLDP
   // -------------------------------------------------------------
   {
@@ -253,6 +253,24 @@ const scenarios = [
       "Sw1とSw2の両方にVLANを設定し、トポロジーで指定されたVLAN名に従って名前を付けます。",
       "両方のスイッチのE0/1、E0/2、およびE0/3ポートを両方のVLAN用に設定し、Cisco IP電話とPCがトラフィックを通過できるようにします。",
       "e0/0 上でベンダーニュートラルプロトコルを介してネイバー検出を許可するように Sw1とSw2 を設定します。"
+    ],
+    // ▼ 練習モード用の解答を追加 ▼
+    answers: [
+`Sw1,Sw2(config)# vlan 77
+Sw1,Sw2(config-vlan)# name User_VLAN
+Sw1,Sw2(config-vlan)# vlan 177
+Sw1,Sw2(config-vlan)# name Voice_VLAN
+Sw1,Sw2(config-vlan)# exit`,
+
+`Sw1,Sw2(config)# int range e0/1 - 3
+Sw1,Sw2(config-if)# switchport mode access
+Sw1,Sw2(config-if)# switchport access vlan 77
+Sw1,Sw2(config-if)# switchport voice vlan 177`,
+
+`Sw1,Sw2(config)# lldp run
+Sw1,Sw2(config)# int e0/0
+Sw1,Sw2(config-if)# lldp transmit
+Sw1,Sw2(config-if)# lldp receive`
     ],
     devices: [
       { name: "Sw1", type: "switch", physicalPorts: ["Ethernet0/0", "Ethernet0/1", "Ethernet0/2", "Ethernet0/3"] },
@@ -303,6 +321,29 @@ const scenarios = [
       "4. SW-1とSW-2間のリンクを、ベンダーニュートラルなネイバーディスカバリプロトコルを使用するように設定します。",
       "5. SW-1からR1へのリンクを、Ciscoネイバーディスカバリプロトコルが通過しないように設定します。"
     ],
+    // ▼ 練習モード用の解答を追加 ▼
+    answers: [
+`SW-1(config)#int e0/1
+SW-1(config-if)#switchport mode access
+SW-1(config-if)#switchport access vlan 10
+SW-1(config-if)#switchport voice vlan 11`,
+
+`SW-2(config)#int e0/1
+SW-2(config-if)#switchport mode access
+SW-2(config-if)#switchport access vlan 30`,
+
+`SW-1(config)#vlan 10
+SW-1(config-vlan)#name Engineering
+SW-1(config-vlan)#exit`,
+
+`SW-1、SW-2(config)#lldp run
+SW-1、SW-2(config)#int e0/0
+SW-1、SW-2(config-if)#lldp transmit
+SW-1、SW-2(config-if)#lldp receive`,
+
+`SW-1(config)#int e0/2
+SW-1(config-if)#no cdp enable`
+    ],
     devices: [
       { name: "SW-1", type: "switch", physicalPorts: ["Ethernet0/0", "Ethernet0/1", "Ethernet0/2"] },
       { name: "SW-2", type: "switch", physicalPorts: ["Ethernet0/0", "Ethernet0/1"] }
@@ -343,6 +384,34 @@ const scenarios = [
       "1. SW-1とSW2のスイッチポートe0/0とe0/1を802.1qトランキング用に設定し、すべてのVLANを許可する",
       "2. SW-1 e0/2、SW-2 e0/2、SW-3 e0/0およびe0/1のスイッチ間リンクをネイティブVLAN35を使用するように設定します。",
       "3. SW-1とSW-2のスイッチポートe0/0とe0/1をリンクアグリゲーション用に設定する。SW1はLACPを直ちにネゴシエートし、SW-2はLACP要求にのみ応答する必要がある。"
+    ],
+    // ▼ 練習モード用の解答と解説を追加 ▼
+    answers: [
+`SW-1、SW-2(config)# int range e0/0 - 1
+SW-1、SW-2(config-if)# switchport trunk encapsulation dot1q
+SW-1、SW-2(config-if)# switchport mode trunk`,
+
+`SW-1、SW-2 (config)# no logging console
+SW-1、SW-2 (config)# int e0/2
+SW-1、SW-2(config-if)# switchport trunk encapsulation dot1q
+SW-1、SW-2(config-if)# switchport mode trunk
+SW-1、SW-2(config-if)# switchport trunk native vlan 35
+
+SW-3 (config)# no logging console
+SW-3 (config)# int range e0/0 - 1
+SW-3 (config-if)# switchport trunk encapsulation dot1q
+SW-3 (config-if)# switchport mode trunk
+SW-3 (config-if)# switchport trunk native vlan 35
+
+【解説】
+no logging consoleコマンドはログの出力を停止するコマンドです。
+ネイティブVLANの設定変更を行うと、対向スイッチとのネイティブVLAN不一致でログ大量に出力されコマンドの実行がしにくくなるので無効化することでコマンドをスムーズに実行できるようになります。`,
+
+`SW-1(config)# int range e0/0 - 1
+SW-1(config-if)# channel-group 12 mode active
+
+SW-2(config)# int range e0/0 - 1
+SW-2(config-if)# channel-group 12 mode passive`
     ],
     devices: [
       { name: "SW-1", type: "switch", physicalPorts: ["Ethernet0/0", "Ethernet0/1", "Ethernet0/2"] },
