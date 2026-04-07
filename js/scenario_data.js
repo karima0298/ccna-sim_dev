@@ -572,4 +572,101 @@ SW-2(config-if)# channel-group 12 mode passive`
       { device: "R1", path: "runningConfig.logs", condition: (logs) => logs && logs.some(l => l.command === 'clear' && l.target === 'ip ospf process'), message: "R1: OSPFプロセスのクリアが実行されていません" }
     ]
   }
+// scenario_data.js
+
+// ...Existing scenarios...
+
+  // =========================================================================================
+  // 【試験モード用】ランダム化シナリオ
+  // =========================================================================================
+
+  // -------------------------------------------------------------
+  // 【新】問題④: IPv4 & IPv6 アドレス設定 (試験モード: ランダム化)
+  // -------------------------------------------------------------
+  {
+    id: "new_q4_exam",
+    title: "【試験】IPv4 & IPv6 アドレス設定",
+    // ★ 前提条件で作った背景画像を指定 ★
+    image: "img/new_q4_base.png", 
+    description: `
+      <div class="task-section">
+        <p><strong>ガイドライン</strong></p>
+        <p>指定されたサブネットを使用して、R1およびR2のインターフェースに適切なIPアドレスを設定してください。</p>
+      </div>
+    `,
+    // --- ★ 変数生成・タスク・判定の動的化 ★ ---
+    
+    // 1. 変数生成ロジック (開いた瞬間に計算)
+    generateVars: () => {
+      // ランダム IPv4 /30
+      // 10.0.12.x スタイルで第4オクテットを4の倍数(4, 8...252)でランダムに選出
+      const fourthOctet = Math.floor(Math.random() * 63) * 4 + 4; 
+      const ipv4Subnet = `10.0.12.${fourthOctet}/30`;
+      const r1Ipv4 = `10.0.12.${fourthOctet + 1}`;
+      const r2Ipv4 = `10.0.12.${fourthOctet + 2}`;
+
+      // ランダム IPv6 /126
+      // 2001:db8:12:x::/126 の x (第4ブロック)を 0〜f の16進数でランダム選出
+      const hexDigit = Math.floor(Math.random() * 16).toString(16); // 0-f
+      const ipv6Subnet = `2001:db8:12:${hexDigit}::/126`;
+      const r1Ipv6 = `2001:db8:12:${hexDigit}::1/126`;
+      const r2Ipv6 = `2001:db8:12:${hexDigit}::3/126`;
+
+      // 計算結果を変数として返す
+      return {
+        ipv4Subnet, r1Ipv4, r2Ipv4,
+        ipv6Subnet, r1Ipv6, r2Ipv6
+      };
+    },
+
+    // 2. 動的タスク生成関数 (変数Varsを受け取る)
+    getTasks: (vars) => [
+      `R1に、IPv4ネットワーク <strong>${vars.ipv4Subnet}</strong> で使用可能な最初のホスト IP アドレスを設定します。<br>R2に、同ネットワークで使用可能な最後のホスト IP アドレスを設定します。`,
+      `R1 にIPv6ネットワーク <strong>${vars.ipv6Subnet}</strong> で使用可能な最初のホスト IP アドレスを設定します。<br>R2 に同ネットワークで使用可能な最後のホスト IP アドレスを設定します。`
+    ],
+
+    // 3. 動的判定生成関数 (変数Varsを受け取る)
+    getValidations: (vars) => [
+      { device: "R1", path: "runningConfig.interfaces.Ethernet0/0.ip", expected: vars.r1Ipv4, message: `R1: IPv4アドレスが ${vars.r1Ipv4} に設定されていません` },
+      { device: "R1", path: "runningConfig.interfaces.Ethernet0/0.mask", expected: "255.255.255.252", message: "R1: IPv4サブネットマスクが 255.255.255.252 ではありません" },
+      { device: "R2", path: "runningConfig.interfaces.Ethernet0/0.ip", expected: vars.r2Ipv4, message: `R2: IPv4アドレスが ${vars.r2Ipv4} に設定されていません` },
+      { device: "R1", path: "runningConfig.interfaces.Ethernet0/0.ipv6", expected: vars.r1Ipv6, message: `R1: IPv6アドレスが ${vars.r1Ipv6} に設定されていません` },
+      { device: "R2", path: "runningConfig.interfaces.Ethernet0/0.ipv6", expected: vars.r2Ipv6, message: `R2: IPv6アドレスが ${vars.r2Ipv6} に設定されていません` },
+      { device: "R1", path: "runningConfig.interfaces.Ethernet0/0.status", expected: "up", message: "R1: インターフェースが起動していません (no shut)" },
+      { device: "R2", path: "runningConfig.interfaces.Ethernet0/0.status", expected: "up", message: "R2: インターフェースが起動していません (no shut)" },
+      // 設定保存チェック
+      { device: "R1", path: "runningConfig.startupConfig", condition: (val) => val != null, message: "R1: 設定が保存されていません (copy run start を実行してください)" },
+      { device: "R2", path: "runningConfig.startupConfig", condition: (val) => val != null, message: "R2: 設定が保存されていません (copy run start を実行してください)" }
+    ],
+
+    // 4. 動的解答生成関数 (練習モード×試験モード用)
+      getAnswers: (vars) => [
+    `R1(config)#interface e0/0
+    R1(config-if)#ip address ${vars.r1Ipv4} 255.255.255.252
+    R1(config-if)#no shut
+
+    R2(config)#interface e0/0
+    R2(config-if)#ip address ${vars.r2Ipv4} 255.255.255.252
+    R2(config-if)#no shut`,
+
+    `R1(config)#interface e0/0
+    R1(config-if)#ipv6 address ${vars.r1Ipv6}
+
+    R2(config)#interface e0/0
+    R2(config-if)#ipv6 address ${vars.r2Ipv6}
+
+    【解説】IPv6アドレス（/126）の計算方法
+    指定されたIPv6ネットワーク（Varsに合わせて変動）から、割り当て可能な「最初」と「最後」のホストIPアドレスを算出します。
+    算出ロジックは標準モードと同じです（ホスト部2ビット）。算出したアドレスをR1（最初）とR2（最後）にそれぞれ設定します。`
+    ],
+    // devices定義は固定 (既存と同じ)
+    devices: [
+      { name: "R1", type: "router", physicalPorts: ["Ethernet0/0"] },
+      { name: "R2", type: "router", physicalPorts: ["Ethernet0/0"] }
+    ],
+  },
+  
+// ...以下、既存の問題...
+
+  
 ]; // ← シナリオ配列の閉じカッコ
