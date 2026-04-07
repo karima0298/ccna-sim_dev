@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="css/style.css">
     
     <style>
-        /* 追加: カード内のボタン用スタイル */
+        /* カード内のボタン用スタイル */
         .button-group {
             display: flex;
             gap: 10px;
@@ -21,23 +21,25 @@
             text-decoration: none;
             font-size: 14px;
             font-weight: bold;
-            transition: background-color 0.2s;
+            transition: opacity 0.2s;
+        }
+        .mode-btn:hover {
+            opacity: 0.8;
         }
         .btn-normal {
             background-color: #0066cc;
             color: white;
             border: 1px solid #0055aa;
         }
-        .btn-normal:hover {
-            background-color: #0055aa;
-        }
         .btn-practice {
-            background-color: #4CAF50; /* 練習モードは緑色など区別しやすい色に */
+            background-color: #4CAF50; /* 練習モードは緑色 */
             color: white;
             border: 1px solid #45a049;
         }
-        .btn-practice:hover {
-            background-color: #45a049;
+        .btn-exam {
+            background-color: #f44336; /* 試験モードは赤色 */
+            color: white;
+            border: 1px solid #d32f2f;
         }
         /* カード自体がリンクだった場合の名残を消すための調整 */
         .scenario-card {
@@ -77,7 +79,7 @@
         </div>
 
         <div class="scenario-grid" id="scenario-list">
-            </div>
+        </div>
     </div>
 
     <script>
@@ -86,10 +88,10 @@
 
             if (typeof scenarios !== 'undefined') {
                 scenarios.filter(scene => scene.id !== 'free').forEach(scene => {
-                    // 変更: <a>タグではなく<div>タグでカードを作成
                     const card = document.createElement('div');
                     card.className = 'scenario-card';
 
+                    // サムネイル画像
                     if (scene.image) {
                         const img = document.createElement('img');
                         img.src = scene.image;
@@ -98,28 +100,50 @@
                         card.appendChild(img);
                     }
 
+                    // タイトル
                     const title = document.createElement('h3');
                     title.textContent = scene.title;
                     card.appendChild(title);
 
-                    // 追加: ボタンをまとめるグループを作成
+                    // ボタンをまとめるグループ
                     const btnGroup = document.createElement('div');
                     btnGroup.className = 'button-group';
 
-                    // 追加: 本番モードボタン
-                    const btnNormal = document.createElement('a');
-                    btnNormal.className = 'mode-btn btn-normal';
-                    btnNormal.href = `simulator.html?scenario=${scene.id}`;
-                    btnNormal.textContent = '本番モード';
+                    // scenario_data.js に generateVars が定義されているか（＝試験モードか）を判定
+                    if (scene.generateVars && typeof scene.generateVars === 'function') {
+                        // ▼ 試験モード用のカード生成
+                        const examTag = document.createElement('p');
+                        examTag.style = 'color: red; font-weight: bold; font-size: 12px; margin: 5px 0 0 0; text-align: center;';
+                        examTag.textContent = '※アドレス/サブネットが毎回変動';
+                        card.appendChild(examTag);
 
-                    // 追加: 練習モードボタン（URLに &mode=practice を付与）
-                    const btnPractice = document.createElement('a');
-                    btnPractice.className = 'mode-btn btn-practice';
-                    btnPractice.href = `simulator.html?scenario=${scene.id}&mode=practice`;
-                    btnPractice.textContent = '練習モード';
+                        const btnExam = document.createElement('a');
+                        btnExam.className = 'mode-btn btn-exam';
+                        btnExam.href = `simulator.html?scenario=${scene.id}&mode=exam`;
+                        btnExam.textContent = '試験モード';
 
-                    btnGroup.appendChild(btnNormal);
-                    btnGroup.appendChild(btnPractice);
+                        const btnPractice = document.createElement('a');
+                        btnPractice.className = 'mode-btn btn-practice';
+                        btnPractice.href = `simulator.html?scenario=${scene.id}&mode=practice`;
+                        btnPractice.textContent = '練習モード';
+
+                        btnGroup.appendChild(btnExam);
+                        btnGroup.appendChild(btnPractice);
+                    } else {
+                        // ▼ 通常モード用のカード生成
+                        const btnNormal = document.createElement('a');
+                        btnNormal.className = 'mode-btn btn-normal';
+                        btnNormal.href = `simulator.html?scenario=${scene.id}`;
+                        btnNormal.textContent = '本番モード';
+
+                        const btnPractice = document.createElement('a');
+                        btnPractice.className = 'mode-btn btn-practice';
+                        btnPractice.href = `simulator.html?scenario=${scene.id}&mode=practice`;
+                        btnPractice.textContent = '練習モード';
+
+                        btnGroup.appendChild(btnNormal);
+                        btnGroup.appendChild(btnPractice);
+                    }
                     
                     card.appendChild(btnGroup);
                     listEl.appendChild(card);
