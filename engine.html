@@ -307,6 +307,8 @@
                     candidates = ['transmit', 'receive'].filter(cmd => cmd.startsWith(lastWord));
                 } else if (words.length === 3 && words[0] === 'no' && words[1] === 'lldp') {
                     candidates = ['transmit', 'receive'].filter(cmd => cmd.startsWith(lastWord));
+                } else if (words.length === 3 && words[0] === 'no' && words[1] === 'logging') {
+                    candidates = ['console'].filter(cmd => cmd.startsWith(lastWord));
                 } else if (words.length === 2 && words[0] === 'clear') {
                     candidates = ['ip'].filter(cmd => cmd.startsWith(lastWord));
                 } else if (words.length === 3 && words[0] === 'clear' && words[1] === 'ip') {
@@ -342,10 +344,12 @@
                 } else if (words.length === 3 && words[0] === 'switchport' && words[1] === 'access') {
                     candidates = ['vlan'].filter(cmd => cmd.startsWith(lastWord));
                 } else if (words.length === 3 && words[0] === 'switchport' && words[1] === 'trunk') {
-                    candidates = ['encapsulation', 'allowed'].filter(cmd => cmd.startsWith(lastWord));
+                    candidates = ['encapsulation', 'allowed', 'native'].filter(cmd => cmd.startsWith(lastWord));
                 } else if (words.length === 4 && words[0] === 'switchport' && words[1] === 'trunk' && words[2] === 'encapsulation') {
                     candidates = ['dot1q'].filter(cmd => cmd.startsWith(lastWord));
                 } else if (words.length === 4 && words[0] === 'switchport' && words[1] === 'trunk' && words[2] === 'allowed') {
+                    candidates = ['vlan'].filter(cmd => cmd.startsWith(lastWord));
+                } else if (words.length === 4 && words[0] === 'switchport' && words[1] === 'trunk' && words[2] === 'native') {
                     candidates = ['vlan'].filter(cmd => cmd.startsWith(lastWord));
                 } else if (words.length === 1) {
                     const vocab = commandVocabulary[mode] || [];
@@ -628,6 +632,9 @@
                              if (!deviceState.runningConfig.lldp) deviceState.runningConfig.lldp = { enabled: false, interfaces: {} };
                              deviceState.runningConfig.lldp.enabled = false;
                          }
+                         else if (args[1] === 'logging' && args[2] === 'console') {
+                             // 問題8のTips対策（シミュレータ上ではエラーを出さず許容するだけ）
+                         }
                          else appendToTerminal('% Incomplete command.');
                          break;
                     case 'ip':
@@ -751,6 +758,9 @@
                                     } else {
                                         incomplete = true; break;
                                     }
+                                } else if (args[2] === 'native') {
+                                    if (args.length < 5 || args[3] !== 'vlan') { incomplete = true; break; }
+                                    conf.switchport.native_vlan = args[4];
                                 }
                             } else if (args[1] === 'port-security') {
                                 if (!conf.portSecurity) conf.portSecurity = {};
