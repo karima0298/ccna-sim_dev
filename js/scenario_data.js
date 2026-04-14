@@ -292,7 +292,8 @@ Sw1(config-if)#switchport trunk encapsulation dot1q
 Sw1(config-if)#switchport mode trunk
 Sw1(config-if)#switchport trunk allowed 12`,
 
-`Sw1,Sw2(config-if-range)#channel-group 12 mode active`
+`Sw1,Sw2(config)#interface range e0/0 - 1
+Sw1,Sw2(config-if-range)#channel-group 12 mode active`
     ],
     devices: [
       { name: "Sw1", type: "switch", physicalPorts: ["Ethernet0/0", "Ethernet0/1", "Ethernet0/2"] },
@@ -345,9 +346,9 @@ Sw1,Sw2(config-vlan)# name Voice_VLAN
 Sw1,Sw2(config-vlan)# exit`,
 
 `Sw1,Sw2(config)# int range e0/1 - 3
-Sw1,Sw2(config-if)# switchport mode access
-Sw1,Sw2(config-if)# switchport access vlan 77
-Sw1,Sw2(config-if)# switchport voice vlan 177`,
+Sw1,Sw2(config-if-range)# switchport mode access
+Sw1,Sw2(config-if-range)# switchport access vlan 77
+Sw1,Sw2(config-if-range)# switchport voice vlan 177`,
 
 `Sw1,Sw2(config)# lldp run
 Sw1,Sw2(config)# int e0/0
@@ -470,8 +471,8 @@ SW-1(config-if)#no cdp enable`
     // ▼ 練習モード用の解答と解説を追加 ▼
     answers: [
 `SW-1、SW-2(config)# int range e0/0 - 1
-SW-1、SW-2(config-if)# switchport trunk encapsulation dot1q
-SW-1、SW-2(config-if)# switchport mode trunk`,
+SW-1、SW-2(config-if-range)# switchport trunk encapsulation dot1q
+SW-1、SW-2(config-if-range)# switchport mode trunk`,
 
 `SW-1、SW-2 (config)# no logging console
 SW-1、SW-2 (config)# int e0/2
@@ -481,19 +482,19 @@ SW-1、SW-2(config-if)# switchport trunk native vlan 35
 
 SW-3 (config)# no logging console
 SW-3 (config)# int range e0/0 - 1
-SW-3 (config-if)# switchport trunk encapsulation dot1q
-SW-3 (config-if)# switchport mode trunk
-SW-3 (config-if)# switchport trunk native vlan 35
+SW-3 (config-if-range)# switchport trunk encapsulation dot1q
+SW-3 (config-if-range)# switchport mode trunk
+SW-3 (config-if-range)# switchport trunk native vlan 35
 
 【解説】
 no logging consoleコマンドはログの出力を停止するコマンドです。
 ネイティブVLANの設定変更を行うと、対向スイッチとのネイティブVLAN不一致でログ大量に出力されコマンドの実行がしにくくなるので無効化することでコマンドをスムーズに実行できるようになります。`,
 
 `SW-1(config)# int range e0/0 - 1
-SW-1(config-if)# channel-group 12 mode active
+SW-1(config-if-range)# channel-group 12 mode active
 
 SW-2(config)# int range e0/0 - 1
-SW-2(config-if)# channel-group 12 mode passive`
+SW-2(config-if-range)# channel-group 12 mode passive`
     ],
     devices: [
       { name: "SW-1", type: "switch", physicalPorts: ["Ethernet0/0", "Ethernet0/1", "Ethernet0/2"] },
