@@ -288,9 +288,9 @@ Sw1,Sw2(config-if-range)#switchport mode trunk
 Sw1,Sw2(config-if-range)#switchport trunk allowed vlan 1,11,12`,
 
 `Sw1(config)#interface e0/2
-Sw1(config-if-range)#switchport trunk encapsulation dot1q
-Sw1(config-if-range)#switchport mode trunk
-Sw1(config-if-range)#switchport trunk allowed 12`,
+Sw1(config-if)#switchport trunk encapsulation dot1q
+Sw1(config-if)#switchport mode trunk
+Sw1(config-if)#switchport trunk allowed 12`,
 
 `Sw1,Sw2(config-if-range)#channel-group 12 mode active`
     ],
