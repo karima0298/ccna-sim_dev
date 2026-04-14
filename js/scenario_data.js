@@ -554,7 +554,7 @@ SW-2(config-if)# channel-group 12 mode passive`
     ],
     // ▼ ここから練習モード用の解答・解説を追加 ▼
     answers: [
-      "R1(config)#router ospf 30\nR1(config-router)#router-id 10.0.12.1\n\n【解説】\n※上記のe0/0のIPアドレスは構成図上に書いていないので、本来は show run コマンド等で確認して設定する必要がありますが、構成図内のIPアドレスが変わっていなければ確認せずに上記のIPを決め打ちしても大丈夫です。",
+      "R1(config)#router ospf 30\nR1(config-router)#router-id 10.0.12.1\n\n【解説】\n※上記のe0/0のIPアドレスは構成図上に書いていないので、本来は show run コマンド等で確認して設定する必要がありますが、構成図内のIPアドレスが変わっていなければ確認せずに上記のIPを決め打ちしても大丈夫です。\n\nR1#show run\n＝＝＝＝＝＝省略＝＝＝＝＝＝\n!\nhostname R1\n!\n!\ninterface Ethernet0/0　←★この下の行のIPを入力する\n ip address 10.0.12.1 255.255.255.0\n\n＝＝＝＝＝＝省略＝＝＝＝＝＝\n\n※なお当シミュレータでは再現不可のため確認できませんのでご了承ください。",
       
       "R1(config)#int range e0/0 - 1\nR1(config-if-range)#ip ospf 30 area 0\nR1(config-if-range)#ip ospf priority 255\nR1(config-if-range)#end\nR1#clear ip ospf process\n\n【解説】\nip ospf priority 255を設定する理由は、対象のルータ（今回の場合はR1）をOSPFのDR（代表ルータ）に確実に選出させるためです。\nOSPFのDR/BDR選出プロセスでは、インターフェースのプライオリティ値（0〜255、デフォルトは1）が最も高いルータが優先的にDRとして選ばれます。そのため、設定できる最高値である「255」を明示的に割り当てることで、他のルータのルータIDの大小に関係なく、R1が常にDRになるようにしています。\n\nclear ip ospf process コマンドを実行する理由は代表ルータの選出を再度行うためです。\nこのコマンドは実行した際にyes/noを入力する必要があります。\n\nR1# clear ip ospf process\nReset ALL OSPF processes? [no]: yes　←このyesを入力してEnter\nOSPF processes reset"
     ],
