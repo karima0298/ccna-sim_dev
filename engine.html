@@ -250,8 +250,9 @@
                 'user': ['enable', 'ping', 'traceroute', 'ssh', 'show', 'sh', 'exit'],
                 'privileged': ['configure', 'terminal', 'copy', 'write', 'show', 'sh', 'ping', 'traceroute', 'exit', 'vlan', 'delete', 'erase', 'clear'],
                 'config': ['hostname', 'interface', 'ip', 'ipv6', 'username', 'line', 'vlan', 'cdp', 'lldp', 'no', 'exit', 'end', 'ntp', 'router'],
-                'interface': ['ip', 'ipv6', 'shutdown', 'shut', 'no', 'switchport', 'channel-group', 'cdp', 'lldp', 'exit', 'end', 'description'],
-                'interface-range': ['ip', 'ipv6', 'shutdown', 'shut', 'no', 'switchport', 'channel-group', 'cdp', 'lldp', 'exit', 'end', 'description'],
+                // ★ 変更点: 'channel-protocol' というダミーコマンドを追加することで、'channel-' で補完を寸止めさせます
+                'interface': ['ip', 'ipv6', 'shutdown', 'shut', 'no', 'switchport', 'channel-group', 'channel-protocol', 'cdp', 'lldp', 'exit', 'end', 'description'],
+                'interface-range': ['ip', 'ipv6', 'shutdown', 'shut', 'no', 'switchport', 'channel-group', 'channel-protocol', 'cdp', 'lldp', 'exit', 'end', 'description'],
                 'vlan': ['name', 'exit', 'end', 'no'],
                 'line': ['transport', 'login', 'password', 'exit', 'end', 'no'],
                 'acl': ['permit', 'deny', 'remark', 'no', 'exit', 'end'],
@@ -331,6 +332,22 @@
                 if (candidates.length === 1) {
                     words[words.length - 1] = candidates[0];
                     commandInput.value = words.join(' ') + ' ';
+                } else if (candidates.length > 1) {
+                    // ★ 変更点: 候補が複数ある場合、Ciscoの実機と同様に「共通する文字列（プレフィックス）」まで補完して寸止めします。
+                    let commonPrefix = candidates[0];
+                    for (let i = 1; i < candidates.length; i++) {
+                        let j = 0;
+                        while (j < commonPrefix.length && j < candidates[i].length && commonPrefix[j] === candidates[i][j]) {
+                            j++;
+                        }
+                        commonPrefix = commonPrefix.substring(0, j);
+                    }
+                    // 入力中の文字より長く補完できる共通部分があれば補完する
+                    if (commonPrefix.length > lastWord.length) {
+                        words[words.length - 1] = commonPrefix;
+                        // 候補がまだ複数あるので、末尾にスペースは入れずにユーザーの追記を待ちます
+                        commandInput.value = words.join(' ');
+                    }
                 }
             }
 
